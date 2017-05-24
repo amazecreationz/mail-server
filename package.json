@@ -1,12 +1,15 @@
 {
-  "name": "openshift-cartridge-nodejs-template",
-  "version": "1.0.1",
-  "description": "Custom Node.js cartridge for OpenShift - sample application",
+  "name": "amazecreationz-mailing-server",
+  "version": "1.0.0",
+  "description": "Amaze Creationz Mailing Server",
   "private": true,
   "main": "start.js",
   "scripts": {
-    "start": "node --use_strict start.js"
+    "start": "node start.js"
   },
-  "author": "Ionut-Cristian Florescu <ionut.florescu@gmail.com>",
-  "license": "ISC"
+  "author": "Anand Mohan <anandmoghan@amazecreationz.in>",
+  "license": "ISC",
+  "dependencies": {
+    "url": "^0.11.0"
+  }
 }
