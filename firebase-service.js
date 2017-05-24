@@ -1,6 +1,5 @@
 const admin = require('firebase-admin');
 const DATA_DIR = process.env.OPENSHIFT_DATA_DIR;
-console.log(DATA_DIR+"/service-account.json")
 var serviceAccount = require(DATA_DIR+"/service-account.json");
 
 admin.initializeApp({

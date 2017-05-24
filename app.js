@@ -5,21 +5,51 @@ const http         = require('http'),
       sysInfo      = require('./utils/sys-info'),
       env          = process.env,
       urlLib       = require('url'),
-      FirebaseService = require('./firebase-service');
+      cors = require('cors')({origin: true}),
+      FirebaseService = require('./firebase-service'),
+      MailService = require('./mail-service');
+
+var runThroughCORS = function (request, response, responseData) {
+	cors(request, response, function() {
+		response.writeHead(200);
+		response.end(responseData);
+    request.destroy();
+	})
+}
 
 let server = http.createServer(function (request, response) {
     let url = request.url.split('?')[0];
     var query = urlLib.parse(request.url, true).query;
-    console.log(url)
-    console.log(query)
     if (url == '/') {
       url += 'index.html';
     }
     if(url == '/sendReply') {
         var authToken = query.authToken;
-        FirebaseService.validateAuth(authToken, function(isAuthenticated, message) {
-            response.writeHead(200);
-            response.end(JSON.stringify(message));
+        FirebaseService.validateAuth(authToken, function(isAuthorised, message) {
+            if(isAuthorised) {
+                var content = JSON.parse(query.content);
+                var header = {
+                  to: content.email,
+                  subject: content.subject
+                }
+                MailService.sendMail(header, content.body, function(error, info) {
+                    var result = {
+                        message: "Failed to send.",
+                        error: error
+                    }
+                    if(!error) {
+                        result = {
+                            status: 1,
+                            message: "Reply sent.",
+                            info: info
+                        }
+                    }
+                    result = JSON.stringify(result);
+                    runThroughCORS(request, response, result)
+                })
+            } else {
+                runThroughCORS(request, response, message)
+            }
         })
     } else if (url == '/health') {
         response.writeHead(200);
