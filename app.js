@@ -7,7 +7,9 @@ const http         = require('http'),
       urlLib       = require('url'),
       cors = require('cors')({origin: true}),
       FirebaseService = require('./firebase-service'),
-      MailService = require('./mail-service');
+      MailService = require('./mail-service'),
+      CronJob = require('cron').CronJob,
+      https = require("https");
 
 var runThroughCORS = function (request, response, responseData) {
 	cors(request, response, function() {
@@ -51,6 +53,8 @@ let server = http.createServer(function (request, response) {
                 runThroughCORS(request, response, message)
             }
         })
+    } else if(url == '/stayAlive') {
+        runThroughCORS(request, response, "Hello there!");
     } else if (url == '/health') {
         response.writeHead(200);
         response.end();
@@ -80,3 +84,29 @@ let server = http.createServer(function (request, response) {
 server.listen(env.NODE_PORT || 3030, env.NODE_IP || 'localhost', function () {
     console.log(`Application worker ${process.pid} started...`);
 });
+
+var javaServer = {
+    host: 'javaserver-amazecreationz.rhcloud.com',
+    path: '/stayAlive'
+};
+
+var job = new CronJob({
+    cronTime: '00 00 * * * *',
+    onTick: function() {
+        https.get(javaServer, function(response) {
+            console.log("JAVA-Server /stayAlive called!")
+            var output = '';
+            response.on('data', function (chunk) {
+                output += chunk;
+            });
+
+             response.on('end', function() {
+                console.log(output);
+            });
+            
+        });
+    },
+    start: false,
+    timeZone: 'America/Los_Angeles'
+});
+job.start();
